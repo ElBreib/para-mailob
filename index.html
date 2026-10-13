@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Para ti, mailob 💌✨</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Quicksand, Caveat, Fredoka -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Fredoka:wght@500;600&family=Quicksand:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root {
+      --romantic-pink: #ff85a2;
+      --soft-rose: #fbcfe8;
+      --pastel-cream: #fefce8;
+    }
+
+    body {
+      font-family: 'Quicksand', sans-serif;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      overflow-x: hidden;
+      touch-action: manipulation;
+    }
+
+    .font-handwriting {
+      font-family: 'Caveat', cursive;
+    }
+
+    .font-bubbly {
+      font-family: 'Fredoka', cursive;
+    }
+
+    /* Fondo degradado pastel tipo nube de ensueño */
+    .bg-pastel-dream {
+      background: radial-gradient(circle at 10% 15%, #ffe4e6 0%, #fae8ff 35%, #fff1f2 70%, #ffedd5 100%);
+    }
+
+    /* Tarjeta estilo cristal esmerilado con aura rosada */
+    .glass-box {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      box-shadow: 0 25px 60px -15px rgba(244, 114, 182, 0.3), 
+                  0 0 0 1px rgba(255, 255, 255, 0.85),
+                  inset 0 1px 2px rgba(255, 255, 255, 0.9);
+    }
+
+    /* Animaciones suaves */
+    @keyframes heartBeatScale {
+      0%, 100% { transform: scale(1); }
+      14% { transform: scale(1.22); }
+      28% { transform: scale(1.05); }
+      42% { transform: scale(1.28); }
+      70% { transform: scale(1); }
+    }
+
+    .heart-beat-anim {
+      display: inline-block;
+      animation: heartBeatScale 1.8s ease-in-out infinite;
+    }
+
+    @keyframes gentleWiggle {
+      0%, 100% { transform: rotate(0deg) translateY(0); }
+      25% { transform: rotate(3deg) translateY(-4px); }
+      75% { transform: rotate(-3deg) translateY(3px); }
+    }
+
+    .wiggle-anim {
+      animation: gentleWiggle 3s ease-in-out infinite;
+    }
+
+    @keyframes pawWave {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(-18deg); }
+    }
+
+    .paw-wave {
+      transform-origin: 85% 75%;
+      animation: pawWave 1.2s ease-in-out infinite;
+    }
+
+    /* Transición suave entre diapositivas */
+    .slide-item {
+      transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .slide-item.inactive-left {
+      opacity: 0;
+      transform: translateX(-40px) scale(0.94);
+      pointer-events: none;
+    }
+
+    .slide-item.inactive-right {
+      opacity: 0;
+      transform: translateX(40px) scale(0.94);
+      pointer-events: none;
+    }
+
+    .slide-item.active {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+      pointer-events: auto;
+    }
+
+    /* Partículas de cursor */
+    .cursor-sparkle {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      animation: fadeShrink 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+
+    @keyframes fadeShrink {
+      0% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+      100% { opacity: 0; transform: translate(-50%, calc(-50% - 25px)) scale(0.3) rotate(35deg); }
+    }
+
+    /* Botón esquivo de broma */
+    #noButton {
+      transition: all 0.22s ease-out;
+    }
+  </style>
+</head>
+<body class="bg-pastel-dream min-h-screen text-slate-800 flex flex-col items-center justify-center p-3 relative select-none">
+
+  <!-- Fondo animado interactivo de chispitas y burbujas de amor -->
+  <canvas id="ambientCanvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
+
+  <!-- Barra flotante superior: Música Lo-Fi / Caja musical y estado -->
+  <header class="fixed top-3 left-0 right-0 max-w-lg mx-auto px-4 flex justify-between items-center z-30 pointer-events-auto">
+    <!-- Indicador de destinatario -->
+    <div class="flex items-center gap-2 bg-white/80 backdrop-blur-md px-3.5 py-1.5 rounded-full shadow-sm border border-rose-200/60 text-xs font-bold text-rose-600">
+      <span class="heart-beat-anim">💖</span>
+      <span>Solo para ti, mailob</span>
+    </div>
+
+    <!-- Botón reproductor de caja musical lo-fi -->
+    <button id="musicToggleBtn" onclick="toggleMusic()" class="bg-white/90 hover:bg-white backdrop-blur-md px-3.5 py-1.5 rounded-full shadow-sm hover:shadow border border-pink-200 text-xs font-bold text-pink-600 flex items-center gap-2 active:scale-95 transition-all">
+      <span id="musicIcon" class="text-sm">🎵</span>
+      <span id="musicText">Cajita Musical: Off</span>
+    </button>
+  </header>
+
+  <!-- MODAL / PANTALLA INICIAL: SOBRE DE CARTA INTERACTIVO -->
+  <div id="envelopeOverlay" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-rose-950/20 backdrop-blur-md transition-opacity duration-700">
+    <div class="flex flex-col items-center max-w-sm w-full text-center">
+      
+      <!-- Sobre interactivo con lacito y sello -->
+      <div id="envelopeCard" onclick="openEnvelope()" class="relative w-64 h-44 sm:w-72 sm:h-48 bg-gradient-to-br from-rose-200 via-pink-100 to-rose-300 rounded-3xl shadow-2xl cursor-pointer transform hover:scale-105 active:scale-98 transition-all duration-300 flex items-center justify-center border-4 border-white">
+        
+        <!-- Solapa del sobre -->
+        <div class="absolute inset-0 bg-white/20 rounded-3xl pointer-events-none"></div>
+        <div class="absolute -top-3 w-28 h-6 bg-pink-300/80 rounded-full blur-xs"></div>
+        
+        <!-- Sello de corazón / Lazo -->
+        <div class="relative z-10 flex flex-col items-center">
+          <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-rose-500 to-pink-400 text-white flex items-center justify-center shadow-lg border-2 border-white heart-beat-anim">
+            <span class="text-3xl">💌</span>
+          </div>
+          <span class="mt-2 font-handwriting text-2xl font-bold text-rose-700 tracking-wide drop-shadow-sm">
+            Para: mailob ❤️
+          </span>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-rose-500/90 mt-0.5 bg-white/60 px-2.5 py-0.5 rounded-full">
+            Toca para abrir
+          </span>
+        </div>
+
+        <!-- Decoraciones en esquinas del sobre -->
+        <span class="absolute top-3 left-3 text-sm">🎀</span>
+        <span class="absolute top-3 right-3 text-sm">✨</span>
+        <span class="absolute bottom-3 left-3 text-sm">🌸</span>
+        <span class="absolute bottom-3 right-3 text-sm">🧸</span>
+      </div>
+
+      <p class="text-white drop-shadow-md text-sm font-semibold mt-5 animate-pulse flex items-center gap-1.5">
+        <span>✨</span> Tienes una carta especial esperando por ti <span>✨</span>
+      </p>
+    </div>
+  </div>
+
+  <!-- CONTENEDOR PRINCIPAL DE SLIDERS -->
+  <main class="w-full max-w-md z-10 my-auto pt-10 pb-2">
+    <div class="glass-box rounded-[32px] p-5 sm:p-7 relative min-h-[515px] flex flex-col justify-between overflow-hidden transition-all duration-300 border border-white/80">
+
+      <!-- Contenedor dinámico de Diapositivas -->
+      <div class="relative w-full flex-1 min-h-[390px]">
+
+        <!-- SLIDE 1: Oye mailob... + Gatito saludando con la patita en SVG -->
+        <div id="slide-0" class="slide-item active px-2 text-center">
+          
+          <!-- Ilustración SVG de Gatito Kawaii Saludando -->
+          <div class="w-28 h-28 mx-auto mb-2 relative">
+            <svg viewBox="0 0 120 120" class="w-full h-full drop-shadow-md overflow-visible">
+              <!-- Orejitas -->
+              <polygon points="28,45 18,15 48,28" fill="#fda4af" stroke="#f43f5e" stroke-width="2.5" stroke-linejoin="round"/>
+              <polygon points="30,40 22,22 44,30" fill="#fed7aa" />
+              <polygon points="92,45 102,15 72,28" fill="#fda4af" stroke="#f43f5e" stroke-width="2.5" stroke-linejoin="round"/>
+              <polygon points="90,40 98,22 76,30" fill="#fed7aa" />
+              
+              <!-- Cabecita -->
+              <circle cx="60" cy="55" r="38" fill="#fff" stroke="#f43f5e" stroke-width="2.5"/>
+              
+              <!-- Mejillas sonrojadas -->
+              <ellipse cx="38" cy="62" rx="6" ry="3.5" fill="#f472b6" opacity="0.6"/>
+              <ellipse cx="82" cy="62" rx="6" ry="3.5" fill="#f472b6" opacity="0.6"/>
+
+              <!-- Ojitos tiernos cerrados felices -->
+              <path d="M 40 52 Q 46 45 52 52" fill="none" stroke="#881337" stroke-width="2.8" stroke-linecap="round"/>
+              <path d="M 68 52 Q 74 45 80 52" fill="none" stroke="#881337" stroke-width="2.8" stroke-linecap="round"/>
+              
+              <!-- Naricita y boquita :3 -->
+              <polygon points="58,58 62,58 60,61" fill="#f43f5e"/>
+              <path d="M 55 63 Q 60 67 60 63 Q 60 67 65 63" fill="none" stroke="#881337" stroke-width="2" stroke-linecap="round"/>
+
+              <!-- Bigotitos -->
+              <line x1="22" y1="56" x2="33" y2="58" stroke="#f43f5e" stroke-width="1.8" stroke-linecap="round"/>
+              <line x1="21" y1="64" x2="32" y2="63" stroke="#f43f5e" stroke-width="1.8" stroke-linecap="round"/>
+              <line x1="98" y1="56" x2="87" y2="58" stroke="#f43f5e" stroke-width="1.8" stroke-linecap="round"/>
+              <line x1="99" y1="64" x2="88" y2="63" stroke="#f43f5e" stroke-width="1.8" stroke-linecap="round"/>
+
+              <!-- Patita saludando (con animación) -->
+              <g class="paw-wave">
+                <ellipse cx="96" cy="46" rx="9" ry="8" fill="#fff" stroke="#f43f5e" stroke-width="2.2"/>
+                <circle cx="94" cy="44" r="2.2" fill="#fda4af"/>
+                <circle cx="98" cy="45" r="2.2" fill="#fda4af"/>
+                <circle cx="96" cy="48" r="3.2" fill="#f43f5e"/>
+              </g>
+
+              <!-- Florcita decorativa en la orejita -->
+              <circle cx="36" cy="28" r="4.5" fill="#fde047"/>
+              <circle cx="33" cy="26" r="3" fill="#f472b6"/>
+              <circle cx="39" cy="26" r="3" fill="#f472b6"/>
+              <circle cx="33" cy="31" r="3" fill="#f472b6"/>
+              <circle cx="39" cy="31" r="3" fill="#f472b6"/>
+            </svg>
+          </div>
+
+          <span class="inline-block bg-rose-100/90 text-rose-600 text-xs tracking-wider uppercase font-extrabold px-3 py-1 rounded-full mb-2">
+            pssst... ¡atención aquí! 🌸
+          </span>
+          <h1 class="text-3xl sm:text-4xl font-extrabold text-rose-800 tracking-tight leading-tight">
+            Oye mailob... 👀🌸
+          </h1>
+          <p class="text-rose-600/90 mt-2 text-sm sm:text-base max-w-xs leading-relaxed font-semibold">
+            Ven tantito, acomódate bien porque hoy quería recordarte algo muy pero muy lindo...
+          </p>
+
+          <button onclick="nextSlide()" class="mt-6 bg-gradient-to-r from-rose-400 via-rose-500 to-pink-500 hover:from-rose-500 hover:to-pink-600 text-white font-bold py-3 px-8 rounded-full shadow-lg shadow-rose-300/50 transform active:scale-95 transition-all flex items-center gap-2 mx-auto">
+            <span>Dime qué es</span>
+            <span class="text-xl">👉</span>
+          </button>
+        </div>
+
+        <!-- SLIDE 2: ¿Tú sabías que... -->
+        <div id="slide-1" class="slide-item inactive-right px-2 text-center">
+          <div class="wiggle-anim mb-3 inline-block text-6xl drop-shadow-sm">
+            🤔✨
+          </div>
+          <span class="inline-block bg-amber-100 text-amber-700 text-xs tracking-wider uppercase font-extrabold px-3 py-1 rounded-full mb-2">
+            Dato 100% verídico y científico 🔬
+          </span>
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-rose-800 tracking-tight leading-tight">
+            ¿Tú sabías que...
+          </h2>
+          <div class="bg-rose-50/70 border border-rose-200/60 rounded-2xl p-4 my-3 max-w-xs mx-auto shadow-inner">
+            <p class="text-rose-700 text-base sm:text-lg font-bold leading-relaxed">
+              ...cada segundo que pasa en este planeta, ¿te quiero todavía un poquito más? ⏳💖
+            </p>
+          </div>
+          <p class="text-slate-500 text-xs sm:text-sm max-w-xs">
+            (Y el día tiene 86,400 segundos, así que calcula la cantidad de amor 🥰)
+          </p>
+
+          <button onclick="nextSlide()" class="mt-5 bg-gradient-to-r from-pink-400 to-rose-500 hover:from-pink-500 hover:to-rose-600 text-white font-bold py-3 px-8 rounded-full shadow-lg shadow-pink-300/50 transform active:scale-95 transition-all flex items-center gap-2 mx-auto">
+            <span>¿Y sabes qué más?</span>
+            <span class="text-xl">🥺</span>
+          </button>
+        </div>
+
+        <!-- SLIDE 3: ¡Te amo con todo mi corazoncito! + Corazón Latiendo -->
+        <div id="slide-2" class="slide-item inactive-right px-2 text-center">
+          <div class="heart-beat-anim mb-2 text-6xl sm:text-7xl drop-shadow-md text-rose-500 cursor-pointer" onclick="celebrateHearts(true)">
+            ❤️
+          </div>
+          <div class="flex justify-center gap-1.5 text-2xl mb-1">
+            <span>🧸</span><span>✨</span><span>🌸</span><span>💕</span><span>✨</span>
+          </div>
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-rose-600 font-handwriting tracking-wide leading-tight drop-shadow-sm">
+            ¡Te amo con todo mi corazoncito!
+          </h2>
+          <p class="text-slate-700 font-semibold mt-2 text-sm sm:text-base max-w-xs leading-relaxed">
+            Así, completito, con cada latido, cada pestañeo y todos los días de la semanita 🥺💗
+          </p>
+
+          <div class="mt-5 flex flex-col sm:flex-row gap-2 justify-center items-center w-full">
+            <button onclick="celebrateHearts(true)" class="w-full sm:w-auto bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold py-2.5 px-5 rounded-full text-xs sm:text-sm active:scale-95 transition-all flex items-center justify-center gap-1.5">
+              <span>¡Lluvia de amor!</span> <span>🎉</span>
+            </button>
+            <button onclick="nextSlide()" class="w-full sm:w-auto bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-bold py-2.5 px-6 rounded-full shadow-md text-xs sm:text-sm active:scale-95 transition-all flex items-center justify-center gap-1.5">
+              <span>Tengo un regalo</span> <span>🎟️</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- SLIDE 4: Cupón Canjeable Especial -->
+        <div id="slide-3" class="slide-item inactive-right px-1 text-center">
+          <span class="inline-block bg-purple-100 text-purple-700 text-xs tracking-wider uppercase font-extrabold px-3 py-1 rounded-full mb-1">
+            Pase Oficial VIP ✨
+          </span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-rose-800">
+            Un cupón especial para ti 🎟️
+          </h2>
+
+          <!-- Tarjeta de Ticket/Cupón -->
+          <div class="relative w-full max-w-[320px] bg-gradient-to-r from-amber-50 via-rose-50 to-pink-50 border-2 border-dashed border-rose-300 rounded-2xl p-4 my-3 shadow-md mx-auto overflow-hidden">
+            <div class="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white rounded-full border-r-2 border-rose-300"></div>
+            <div class="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white rounded-full border-l-2 border-rose-300"></div>
+            
+            <p class="font-bubbly text-xs text-rose-400 uppercase tracking-widest font-bold">Vale de Amor Ilimitado</p>
+            <h3 class="text-base sm:text-lg font-extrabold text-rose-700 mt-1">
+              "Válido por un abrazo eterno y besitos ilimitados"
+            </h3>
+            <p class="text-[11px] text-slate-500 mt-1">No vence nunca • Válido 24/7 en cualquier lugar 🌍</p>
+
+            <button id="claimCouponBtn" onclick="claimCoupon()" class="mt-3 bg-gradient-to-r from-rose-500 to-pink-500 text-white font-bold py-2 px-5 rounded-full text-xs shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5 mx-auto">
+              <span>🎟️ Reclamar cupón ahora</span>
+            </button>
+            <p id="claimedFeedback" class="hidden text-xs text-emerald-600 font-bold mt-2">
+              ✅ ¡Cupón canjeado con éxito! Corresponde cobrarlo hoy mismo 🥰
+            </p>
+          </div>
+
+          <button onclick="nextSlide()" class="mt-1 text-rose-600 hover:text-rose-700 font-bold text-xs sm:text-sm py-1.5 px-4 rounded-full underline decoration-pink-300 underline-offset-4 active:scale-95 transition">
+            Continuar a las razones 🎁 👉
+          </button>
+        </div>
+
+        <!-- SLIDE 5: Cápsula de Razones Aleatorias por las que te amo -->
+        <div id="slide-4" class="slide-item inactive-right px-2 text-center">
+          <span class="inline-block bg-pink-100 text-pink-700 text-xs tracking-wider uppercase font-extrabold px-3 py-1 rounded-full mb-1">
+            Motivos infinitos 💌
+          </span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-rose-800">
+            ¿Por qué te amo tanto?
+          </h2>
+          <p class="text-xs text-slate-500 mb-2">Toca la cajita y descubre una nueva razón:</p>
+
+          <!-- Tarjeta de Razón Generada -->
+          <div class="w-full max-w-xs min-h-[110px] bg-white/90 border border-rose-200 rounded-2xl p-4 flex flex-col items-center justify-center shadow-inner mx-auto my-2 transition-all duration-300">
+            <span class="text-2xl mb-1" id="reasonIcon">🌸</span>
+            <p id="reasonText" class="text-rose-800 font-bold text-sm sm:text-base leading-snug">
+              "Por tu risa hermosa que alegra cualquier momento nublado."
+            </p>
+            <span id="reasonCounter" class="text-[10px] text-rose-400 font-semibold mt-1">Razón #1</span>
+          </div>
+
+          <div class="flex gap-2 justify-center mt-2">
+            <button onclick="generateRandomReason()" class="bg-gradient-to-r from-pink-400 to-rose-500 hover:from-pink-500 hover:to-rose-600 text-white font-bold py-2.5 px-4 rounded-xl text-xs sm:text-sm shadow-md active:scale-95 transition-all flex items-center gap-1.5">
+              <span>🎁 Otra razón</span>
+            </button>
+            <button onclick="nextSlide()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold py-2.5 px-4 rounded-xl text-xs sm:text-sm active:scale-95 transition-all flex items-center gap-1.5">
+              <span>Preguntita final 👉</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- SLIDE 6: Pregunta interactiva con botón bromista que escapa -->
+        <div id="slide-5" class="slide-item inactive-right px-2 text-center">
+          <div class="heart-beat-anim text-5xl mb-2">
+            💍🥰
+          </div>
+          <span class="inline-block bg-rose-100 text-rose-700 text-xs tracking-wider uppercase font-extrabold px-3 py-1 rounded-full mb-1">
+            La pregunta del millón
+          </span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-rose-800 leading-tight">
+            ¿Y tú me amas a mí? 👀
+          </h2>
+          <p class="text-slate-600 text-xs sm:text-sm max-w-xs mt-1 mb-4">
+            Responde con la verdad absoluta y sincera de tu corazón...
+          </p>
+
+          <!-- Área de respuesta con botón travieso -->
+          <div class="relative w-full min-h-[140px] flex items-center justify-center gap-4">
+            
+            <!-- Botón del Sí (Firme y triunfal) -->
+            <button onclick="handleAcceptLove()" class="z-10 bg-gradient-to-r from-emerald-400 via-rose-500 to-pink-500 hover:scale-105 text-white font-extrabold py-3 px-6 rounded-2xl shadow-xl shadow-rose-300/60 active:scale-95 transition-transform text-sm sm:text-base flex items-center gap-2">
+              <span>¡Shi mailob!</span>
+              <span class="text-xl">💖</span>
+            </button>
+
+            <!-- Botón del No (Evasivo / travieso) -->
+            <button id="noButton" onmouseenter="dodgeButton()" onclick="dodgeButton()" class="bg-slate-200/90 text-slate-600 font-bold py-2.5 px-4 rounded-2xl text-xs sm:text-sm shadow-sm select-none border border-slate-300">
+              <span>No 😜</span>
+            </button>
+          </div>
+
+          <div id="celebrationResult" class="hidden mt-2 p-2 bg-rose-50 rounded-xl border border-rose-200 animate-bounce">
+            <p class="text-rose-700 font-extrabold text-xs sm:text-sm">
+              ¡SABÍA QUE SÍ! ¡Eres lo más precioso de mi vida! Te amo infinitamente 🚀💖🎉
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- BARRA DE NAVEGACIÓN INFERIOR (Dots y Flechas) -->
+      <footer class="pt-3 border-t border-rose-100/70 flex items-center justify-between mt-auto">
+        <button id="prevBtn" onclick="prevSlide()" class="p-2 text-rose-400 hover:text-rose-600 disabled:opacity-20 disabled:cursor-not-allowed transition" disabled aria-label="Anterior">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+        </button>
+
+        <!-- Indicador numérico y dots -->
+        <div class="flex flex-col items-center gap-1">
+          <div class="flex items-center gap-1.5" id="dotsContainer">
+            <!-- 6 dots generados dinámicamente -->
+          </div>
+          <span id="slideCounterText" class="text-[10px] font-bold text-rose-400">1 de 6</span>
+        </div>
+
+        <button id="nextBtn" onclick="nextSlide()" class="p-2 text-rose-400 hover:text-rose-600 disabled:opacity-20 disabled:cursor-not-allowed transition" aria-label="Siguiente">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+        </button>
+      </footer>
+
+    </div>
+
+    <!-- Mensaje final decorativo -->
+    <p class="text-center text-xs text-rose-400/90 mt-3 font-semibold tracking-wide">
+      Hecho con todo el corazoncito para mailob ✨
+    </p>
+  </main>
+
+  <script>
+    // ==========================================
+    // 1. WEB AUDIO API: SINTETIZADOR DE MÚSICA & CAMPANAS
+    // ==========================================
+    let audioCtx = null;
+    let isMusicPlaying = false;
+    let musicTimer = null;
+    let noteIndex = 0;
+
+    // Melodía tierna en modo nana / caja musical (frecuencias en Hz)
+    // C5, E5, G5, A5, G5, E5, D5, C5, F5, E5, D5, C5...
+    const lullabyNotes = [
+      523.25, 659.25, 783.99, 880.00, 783.99, 659.25, 587.33, 523.25,
+      698.46, 659.25, 587.33, 523.25, 659.25, 783.99, 1046.50, 880.00,
+      783.99, 659.25, 587.33, 523.25
+    ];
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioCtx = new AudioContextClass();
+        }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    // Tono campana/cajita de música acústica con reverb natural
+    function playMusicBoxChime(freq, gainLevel = 0.12, duration = 0.9) {
+      if (!audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        // Onda senoidal con un toque suave
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+        // Curva tipo nota pulsada de celesta o cajita de música
+        gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(gainLevel, audioCtx.currentTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function scheduleNextMusicNote() {
+      if (!isMusicPlaying) return;
+      initAudio();
+      
+      const currentFreq = lullabyNotes[noteIndex % lullabyNotes.length];
+      // Tono suave
+      playMusicBoxChime(currentFreq, 0.1, 0.85);
+
+      // Ligero acompañamiento de bajo cada 4 notas
+      if (noteIndex % 4 === 0) {
+        playMusicBoxChime(currentFreq / 2, 0.08, 1.4);
+      }
+
+      noteIndex++;
+      musicTimer = setTimeout(scheduleNextMusicNote, 480);
+    }
+
+    function toggleMusic() {
+      initAudio();
+      isMusicPlaying = !isMusicPlaying;
+      const icon = document.getElementById('musicIcon');
+      const text = document.getElementById('musicText');
+
+      if (isMusicPlaying) {
+        icon.textContent = '🎶';
+        text.textContent = 'Cajita: Sonando 🌸';
+        scheduleNextMusicNote();
+      } else {
+        clearTimeout(musicTimer);
+        icon.textContent = '🎵';
+        text.textContent = 'Cajita: Off';
+      }
+    }
+
+    // ==========================================
+    // 2. APERTURA DEL SOBRE INTERACTIVO
+    // ==========================================
+    function openEnvelope() {
+      initAudio();
+      // Pequeño arpegio de campanitas
+      [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
+        setTimeout(() => playMusicBoxChime(f, 0.15, 0.7), i * 80);
+      });
+
+      // Lanza confeti inicial
+      celebrateHearts(false);
+
+      // Desvanecer el sobre
+      const overlay = document.getElementById('envelopeOverlay');
+      overlay.style.opacity = '0';
+      overlay.style.pointerEvents = 'none';
+
+      // Iniciar automáticamente la música ambiental
+      if (!isMusicPlaying) {
+        toggleMusic();
+      }
+
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+      }, 700);
+    }
+
+    // ==========================================
+    // 3. CONTROL DE SLIDERS & DOTS
+    // ==========================================
+    let currentSlide = 0;
+    const totalSlides = 6;
+    const slides = Array.from({ length: totalSlides }, (_, i) => document.getElementById(`slide-${i}`));
+    const dotsContainer = document.getElementById('dotsContainer');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const slideCounterText = document.getElementById('slideCounterText');
+
+    // Construir dots dinámicos
+    function buildDots() {
+      dotsContainer.innerHTML = '';
+      for (let i = 0; i < totalSlides; i++) {
+        const dot = document.createElement('button');
+        dot.className = `w-2 h-2 rounded-full transition-all duration-300 ${i === 0 ? 'bg-rose-500 w-5' : 'bg-rose-200'}`;
+        dot.onclick = () => goToSlide(i);
+        dotsContainer.appendChild(dot);
+      }
+    }
+    buildDots();
+
+    function updateSlider() {
+      slides.forEach((slide, index) => {
+        slide.classList.remove('active', 'inactive-left', 'inactive-right');
+        if (index === currentSlide) {
+          slide.classList.add('active');
+        } else if (index < currentSlide) {
+          slide.classList.add('inactive-left');
+        } else {
+          slide.classList.add('inactive-right');
+        }
+      });
+
+      // Actualizar dots
+      const allDots = dotsContainer.children;
+      for (let i = 0; i < allDots.length; i++) {
+        if (i === currentSlide) {
+          allDots[i].className = 'h-2 rounded-full transition-all duration-300 bg-rose-500 w-5 shadow-sm';
+        } else {
+          allDots[i].className = 'w-2 h-2 rounded-full transition-all duration-300 bg-rose-200 hover:bg-rose-300';
+        }
+      }
+
+      // Contador
+      slideCounterText.textContent = `${currentSlide + 1} de ${totalSlides}`;
+
+      // Botones
+      prevBtn.disabled = currentSlide === 0;
+      nextBtn.disabled = currentSlide === totalSlides - 1;
+
+      // Efecto sonoro de cambio
+      playMusicBoxChime(600 + currentSlide * 80, 0.12, 0.4);
+
+      if (currentSlide === 2) {
+        celebrateHearts(true);
+      }
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides - 1) {
+        currentSlide++;
+        updateSlider();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        currentSlide--;
+        updateSlider();
+      }
+    }
+
+    function goToSlide(idx) {
+      if (idx >= 0 && idx < totalSlides && idx !== currentSlide) {
+        currentSlide = idx;
+        updateSlider();
+      }
+    }
+
+    // ==========================================
+    // 4. FUNCIONALIDADES INTERACTIVAS ESPECÍFICAS
+    // ==========================================
+
+    // Canjear cupón
+    function claimCoupon() {
+      initAudio();
+      celebrateHearts(true);
+      playMusicBoxChime(1046.50, 0.2, 0.8);
+      const btn = document.getElementById('claimCouponBtn');
+      const feedback = document.getElementById('claimedFeedback');
+      btn.innerHTML = '<span>🎉 ¡Cupón Reclamado!</span>';
+      btn.classList.add('opacity-70', 'pointer-events-none');
+      feedback.classList.remove('hidden');
+    }
+
+    // Cápsula de razones por las que te amo
+    const reasonsList = [
+      { text: "Por tu risa hermosa que alegra cualquier momento nublado.", icon: "🌸" },
+      { text: "Por cómo me haces sentir en paz y en casita con solo un abrazo.", icon: "🏡" },
+      { text: "Por ser mi lugar seguro y mi persona favorita de todo el universo.", icon: "🪐" },
+      { text: "Por tus ojitos cuando me miras y me haces sonreír sin darme cuenta.", icon: "👀" },
+      { text: "Por tu ternura infinita y por la bondad enorme de tu corazón.", icon: "🧸" },
+      { text: "Por cada momento tonto y divertido que compartimos juntos.", icon: "🥰" },
+      { text: "Simplemente por existir y haber llegado a iluminar mi vida.", icon: "✨" }
+    ];
+    let reasonIndex = 0;
+
+    function generateRandomReason() {
+      initAudio();
+      playMusicBoxChime(880, 0.15, 0.5);
+      reasonIndex = (reasonIndex + 1) % reasonsList.length;
+      const current = reasonsList[reasonIndex];
+      document.getElementById('reasonText').textContent = `"${current.text}"`;
+      document.getElementById('reasonIcon').textContent = current.icon;
+      document.getElementById('reasonCounter').textContent = `Razón #${reasonIndex + 1}`;
+    }
+
+    // Botón travieso "No" que escapa
+    function dodgeButton() {
+      const btn = document.getElementById('noButton');
+      const randomX = (Math.random() - 0.5) * 160;
+      const randomY = (Math.random() - 0.5) * 90;
+      btn.style.transform = `translate(${randomX}px, ${randomY}px) scale(0.85)`;
+      playMusicBoxChime(350 + Math.random() * 200, 0.08, 0.2);
+    }
+
+    // Respuesta Sí definitiva
+    function handleAcceptLove() {
+      celebrateHearts(true);
+      celebrateHearts(true);
+      [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((f, i) => {
+        setTimeout(() => playMusicBoxChime(f, 0.2, 0.8), i * 100);
+      });
+      document.getElementById('celebrationResult').classList.remove('hidden');
+      document.getElementById('noButton').style.display = 'none';
+    }
+
+    // ==========================================
+    // 5. EFECTO CONFETI Y CORAZONES
+    // ==========================================
+    function celebrateHearts(intense = false) {
+      if (!window.confetti) return;
+      confetti({
+        particleCount: intense ? 60 : 30,
+        spread: 70,
+        origin: { y: 0.65 },
+        colors: ['#ff85a2', '#f43f5e', '#fbcfe8', '#fef08a', '#ffffff'],
+        shapes: ['circle'],
+        scalar: 1.1
+      });
+    }
+
+    // ==========================================
+    // 6. RASTRO DE CURSOR / TOQUE INTERACTIVO
+    // ==========================================
+    const sparkles = ['✨', '💖', '🌸', '💕', '⭐'];
+    let lastSparkleTime = 0;
+
+    function createSparkle(x, y) {
+      const now = Date.now();
+      if (now - lastSparkleTime < 55) return; // Limitar frecuencia para fluidez
+      lastSparkleTime = now;
+
+      const spark = document.createElement('div');
+      spark.className = 'cursor-sparkle text-base select-none';
+      spark.textContent = sparkles[Math.floor(Math.random() * sparkles.length)];
+      spark.style.left = `${x}px`;
+      spark.style.top = `${y}px`;
+
+      document.body.appendChild(spark);
+      setTimeout(() => {
+        if (spark.parentNode) spark.parentNode.removeChild(spark);
+      }, 800);
+    }
+
+    window.addEventListener('mousemove', (e) => {
+      createSparkle(e.clientX, e.clientY);
+    });
+
+    window.addEventListener('touchmove', (e) => {
+      if (e.touches && e.touches[0]) {
+        createSparkle(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
+
+    // ==========================================
+    // 7. FONDO CANVAS DE CORAZONES FLOTANTES
+    // ==========================================
+    const canvas = document.getElementById('ambientCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class FloatingHeart {
+      constructor() {
+        this.reset(true);
+      }
+      reset(initial = false) {
+        this.x = Math.random() * canvas.width;
+        this.y = initial ? Math.random() * canvas.height : canvas.height + 25;
+        this.size = 12 + Math.random() * 16;
+        this.speedY = 0.4 + Math.random() * 0.8;
+        this.speedX = (Math.random() - 0.5) * 0.5;
+        this.opacity = 0.2 + Math.random() * 0.4;
+        this.symbol = Math.random() > 0.4 ? '♥' : (Math.random() > 0.5 ? '✨' : '🌸');
+      }
+      update() {
+        this.y -= this.speedY;
+        this.x += this.speedX;
+        if (this.y < -30) this.reset();
+      }
+      draw() {
+        ctx.save();
+        ctx.font = `${this.size}px Arial`;
+        ctx.fillStyle = `rgba(244, 114, 182, ${this.opacity})`;
+        ctx.fillText(this.symbol, this.x, this.y);
+        ctx.restore();
+      }
+    }
+
+    function initFloatingParticles() {
+      const count = Math.min(22, Math.floor(window.innerWidth / 25));
+      particles = [];
+      for (let i = 0; i < count; i++) {
+        particles.push(new FloatingHeart());
+      }
+    }
+
+    function animateFloating() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let p of particles) {
+        p.update();
+        p.draw();
+      }
+      requestAnimationFrame(animateFloating);
+    }
+
+    initFloatingParticles();
+    animateFloating();
+  </script>
+</body>
+</html>
